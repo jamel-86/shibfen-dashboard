@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>cryptoPage</title>
+    <script src="https://kit.fontawesome.com/392d0a80d8.js" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="./tailwind.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+    <script src="./abi.js"></script>
+    <script src="https://unpkg.com/web3@latest/dist/web3.min.js"></script>
+</head>
+
+<body>
+    <nav class="navbar navbar-dark bg-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand">
+                <img src="./cropped-logo-3-282x300.png" alt="" width="28" height="30" class="d-inline-block align-text-top"> Rewards Dashboard
+            </a>
+            <button class="btn btn-outline-success" type="submit" onclick="CheckMetamaskConnection()">Connect</button>
+        </div>
+    </nav>
+
+    <div style="background-color: darkgray;" class=" mx-auto  mb-5">
+        <section class="">
+            <div class="w-11/12  mx-auto ">
+                <h1 style="text-align: center;" class="text-4xl font-semibold text-black py-3">ShibFen Inu Dashboard</h1>
+                <div style="background-color: ~green;" class="text-white text-xl flex flex-row justify-between p-3 my-3 rounded ">
+                    <div>
+                        <h1>
+                            Your SHIBFEN Holdings => <span id="balance">0</span>
+                        </h1>
+                    </div>
+                </div>
+                <div class="grid gap-6 md:grid-cols-2 xl:grid-cols-4  ">
+                    <div class="min-w-0 rounded-lg shadow-xs overflow-hidden bg-pink-900">
+                        <div class="p-4 flex items-center">
+                            <div class="p-3 rounded-md text-orange-100 bg-orange-500 mr-4">
+                                <i class="fa fa-th-large text-2xl text-white"></i>
+                            </div>
+                            <div>
+                                <p class="mb-2 text-sm font-medium text-gray-400"><button onclick="claim()" type="button" style="width: 100px;" class="btn btn-success">claim</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="min-w-0 rounded-lg shadow-xs overflow-hidden bg-pink-900">
+                        <div class="p-4 flex items-center">
+                            <div class="p-3 rounded-md text-orange-100 bg-orange-500 mr-4">
+                                <i class="fa fa-th-large text-2xl text-white"></i>
+                            </div>
+                            <div>
+                                <p class="mb-2 text-sm font-medium text-gray-400">Withdrawable Dividends</p>
+                                <p class="text-lg font-semibold text-gray-200"><span id="with">0</span> BNB</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="min-w-0 rounded-lg shadow-xs overflow-hidden bg-pink-900">
+                        <div class="p-4 flex items-center">
+                            <div class="p-3 rounded-md text-orange-100 bg-orange-500 mr-4">
+                                <i class="fa fa-th-large text-2xl text-white"></i>
+                            </div>
+                            <div>
+                                <p class="mb-2 text-sm font-medium text-gray-400">Total BNB Received</p>
+                                <p class="text-lg font-semibold text-gray-200"><span id="Dividends">0</span> SHIBFEN</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="min-w-0 rounded-lg shadow-xs overflow-hidden bg-pink-900">
+                        <div class="p-4 flex items-center">
+                            <div class="p-3 rounded-md text-orange-100 bg-orange-500 mr-4">
+                                <i class="fa fa-th-large text-2xl text-white"></i>
+                            </div>
+                            <div>
+                                <p class="mb-2 text-sm font-medium text-gray-400">Total BNB Distributed</p>
+                                <p class="text-lg font-semibold text-gray-200"><span id="Tdividends">0</span> BNB</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+                <div class="min-w-0 rounded-lg shadow-xs overflow-hidden bg-pink-900 mt-4">
+                    <div class="p-4 flex items-center">
+                        <button class="align-bottom inline-flex items-center justify-center cursor-pointer leading-5 transition-colors duration-150 font-medium focus:outline-none px-4 py-2 rounded-lg text-sm text-white bg-purple-600 border border-transparent opacity-50 w-full h-full  "
+                            disabled type="button">Payout Is Processing</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+
+    <script>
+        Number.prototype.noExponents = function() {
+            var data = String(this).split(/[eE]/);
+            if (data.length == 1) return data[0];
+
+            var z = "",
+                sign = this < 0 ? "-" : "",
+                str = data[0].replace(".", ""),
+                mag = Number(data[1]) + 1;
+
+            if (mag < 0) {
+                z = sign + "0.";
+                while (mag++) z += "0";
+                return z + str.replace(/^\-/, "");
+            }
+            mag -= str.length;
+            while (mag--) z += "0";
+            return str + z;
+        };
+
+        console.log('hello')
+
+        var myContract;
+        var accounts;
+        async function CheckMetamaskConnection() {
+            // Modern dapp browsers...
+            if (window.ethereum) {
+                window.web3 = new Web3(window.ethereum);
+                try {
+                    // Request account access if needed
+                    await ethereum.enable();
+
+                    accounts = await web3.eth.getAccounts();
+                    console.log("yes");
+                    init();
+                    // Acccounts now exposed
+                    return true;
+                } catch (error) {
+                    // User denied account access...
+                    return false;
+                }
+            }
+            // Legacy dapp browsers...
+            else if (window.web3) {
+                window.web3 = new Web3(web3.currentProvider);
+                // Acccounts always exposed
+                accounts = await web3.eth.getAccounts();
+                console.log("yes");
+                init();
+                return true;
+            }
+            // Non-dapp browsers...
+            else {
+                console.log(
+                    "Non-Ethereum browser detected. You should consider trying MetaMask!"
+                );
+                return false;
+            }
+        }
+
+        CheckMetamaskConnection();
+        console.log(abi)
+        myContract = new web3.eth.Contract(
+            abi,
+            "0x1908036aE6324eD8e38e5884DccEd4a943E38340"
+        );
+
+        const init = async() => {
+            document.getElementById("balance").innerHTML = (
+                (await myContract.methods.balanceOf(accounts[0]).call()) / Math.pow(10, 18)
+            ).noExponents();
+            document.getElementById("with").innerHTML = (
+                (await myContract.methods.withdrawableDividendOf(accounts[0]).call()) / Math.pow(10, 18)
+            ).noExponents();
+            document.getElementById("Tdividends").innerHTML = (
+                (await myContract.methods.getTotalDividendsDistributed().call()) / Math.pow(10, 18)
+            ).noExponents();
+            const result = await myContract.methods.getAccountDividendsInfo(accounts[0]).call();
+            document.getElementById("Dividends").innerHTML = (result[5] / Math.pow(10, 18)).noExponents()
+        }
+
+        const claim = async() => {
+            await myContract.methods.claim().send({
+                from: accounts[0]
+            })
+        }
+    </script>
+</body>
+
+</html>

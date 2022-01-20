@@ -154,6 +154,7 @@
         }
 
         CheckMetamaskConnection();
+        const abi = artifacts.require("./abi.js");
         console.log(abi)
         myContract = new web3.eth.Contract(
             abi,
